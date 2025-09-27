@@ -19,7 +19,7 @@ mod tests {
         FitFileType,
         fit::{
             FitBaseType, FitFieldDefinitionContent, FitFile, FitGlobalMessageNumber,
-            FitLapFieldDefinitionNumber, FitMessageArchitecture, FitProtocolVersion,
+            FitLapFieldDefinitionNumber, FitProtocolVersion,
         },
     };
 
@@ -55,7 +55,6 @@ mod tests {
         )
         .unwrap();
         let result = fit.define(
-            FitMessageArchitecture::LSB,
             FitGlobalMessageNumber::Lap,
             &[FitFieldDefinitionContent {
                 number: FitLapFieldDefinitionNumber::StartPositionLat as u8,

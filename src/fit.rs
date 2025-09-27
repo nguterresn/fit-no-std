@@ -19,6 +19,8 @@ pub enum FitGlobalMessageNumber {
     Capabilities,
     Lap = 19,
     Record = 20,
+    Workout = 26,
+    WorkoutStep = 27,
 }
 
 pub enum FitFileIdFieldDefinitionNumber {
@@ -40,6 +42,23 @@ pub enum FitLapFieldDefinitionNumber {
 }
 
 #[derive(Debug)]
+pub enum FitWorkoutFieldDefinitionNumber {
+    Sport = 4,         // sport
+    Capabilities = 5,  // workout_capabilities
+    NumValidSteps = 6, // uint16
+}
+
+#[derive(Debug)]
+pub enum FitWorkoutStepFieldDefinitionNumber {
+    DurationType = 1,
+    DurationValue,
+    TargetType,
+    TargetValue,
+    Intensity = 7,
+    MessageIndex = 254,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum FitMessageArchitecture {
     LSB,
     MSB,
@@ -80,6 +99,7 @@ pub enum FitFileType {
     Course,
 }
 
+#[derive(Debug, Copy, Clone, PartialEq)]
 pub enum FitFileManufacturer {
     Garmin = 1,
     Zephyr = 3,
@@ -97,6 +117,8 @@ pub struct FitFieldDefinitionContent {
 #[derive(Debug, PartialEq)]
 pub struct FitFile<const N: usize> {
     stream: Vec<u8, N>,
+    arch: FitMessageArchitecture,
+    manufacturer: FitFileManufacturer,
 }
 
 impl<const N: usize> FitFile<N> {
@@ -105,17 +127,19 @@ impl<const N: usize> FitFile<N> {
         major: u8,
         minor: u8,
         file_type: FitFileType,
-        // The FIT Profile defines the date_time type as an uint32 that
-        // represents the number of seconds since midnight on December 31, 1989 UTC*.
-        // This date is often referred to as the FIT Epoch.
         timestamp: u32,
     ) -> Result<Self, FitError> {
-        let mut fit_file = Self { stream: Vec::new() };
+        let mut fit_file = Self {
+            stream: Vec::new(),
+            arch: FitMessageArchitecture::LSB,
+            manufacturer: FitFileManufacturer::Development,
+        };
+
         fit_file
             .build_header(protocol_version, major, minor)
             .map_err(|e| FitError::Failed(e))?;
         fit_file
-            .build_file_id(file_type, FitFileManufacturer::Development, timestamp)
+            .build_file_id(file_type, timestamp)
             .map_err(|e| FitError::Failed(e))?;
         Ok(fit_file)
     }
@@ -157,11 +181,12 @@ impl<const N: usize> FitFile<N> {
     fn build_file_id(
         &mut self,
         file_type: FitFileType,
-        manufacturer: FitFileManufacturer,
+        // The FIT Profile defines the date_time type as an uint32 that
+        // represents the number of seconds since midnight on December 31, 1989 UTC*.
+        // This date is often referred to as the FIT Epoch.
         timestamp: u32,
     ) -> Result<(), u8> {
         self.define(
-            FitMessageArchitecture::LSB,
             FitGlobalMessageNumber::FileId,
             &[
                 FitFieldDefinitionContent {
@@ -184,7 +209,7 @@ impl<const N: usize> FitFile<N> {
 
         let mut buffer = [0u8; 7]; // 1 + 2 + 4 bytes
         buffer[0] = file_type as u8;
-        buffer[1..3].copy_from_slice(&(manufacturer as u16).to_le_bytes());
+        buffer[1..3].copy_from_slice(&(self.manufacturer as u16).to_le_bytes());
         buffer[3..7].copy_from_slice(&(timestamp).to_le_bytes());
         self.push(&buffer)?;
 
@@ -198,7 +223,6 @@ impl<const N: usize> FitFile<N> {
 
     fn build_message_definition_content(
         &mut self,
-        arch: FitMessageArchitecture,
         gmsg_num: FitGlobalMessageNumber,
         fields_def: &[FitFieldDefinitionContent],
     ) -> Result<(), u8> {
@@ -206,7 +230,7 @@ impl<const N: usize> FitFile<N> {
         self.stream.push(0)?;
         // [1] Architecture LSB (0) or MSB (1)
         // Note: LSB only.
-        self.stream.push(arch as u8)?;
+        self.stream.push(self.arch as u8)?;
 
         // [2:4] Global Message Number (0:65535 Unique)
         self.stream
@@ -258,7 +282,7 @@ impl<const N: usize> FitFile<N> {
         let size = self.size() - 10;
         for n in 0..4 {
             self.stream
-                .insert(n + 5, ((size >> n) & 0xff) as u8)
+                .insert(4, ((size >> (3 - n) * 8) & 0xff) as u8)
                 .map_err(|e| FitError::Failed(e))?;
         }
 
@@ -277,12 +301,11 @@ impl<const N: usize> FitFile<N> {
 
     pub fn define(
         &mut self,
-        arch: FitMessageArchitecture,
         global_msg_num: FitGlobalMessageNumber,
         fields_def: &[FitFieldDefinitionContent],
     ) -> Result<(), u8> {
         self.build_record_header(FitMessageType::DefinitionMessage)?;
-        self.build_message_definition_content(arch, global_msg_num, fields_def)?;
+        self.build_message_definition_content(global_msg_num, fields_def)?;
         Ok(())
     }
 
