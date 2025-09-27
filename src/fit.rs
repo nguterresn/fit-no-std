@@ -10,7 +10,7 @@ pub enum FitError {
 #[derive(Debug)]
 pub enum FitMessageType {
     DataMessage,
-    DefinitionMessage,
+    DefinitionMessage = 64,
 }
 
 #[derive(Debug)]
@@ -19,6 +19,16 @@ pub enum FitGlobalMessageNumber {
     Capabilities,
     Lap = 19,
     Record = 20,
+}
+
+pub enum FitFileIdFieldDefinitionNumber {
+    Type,         // Required
+    Manufacturer, // Required
+    Product,
+    SerialNumber,
+    TimeCreated, // Required
+    Number,
+    ProductName = 8,
 }
 
 #[derive(Debug)]
@@ -56,6 +66,26 @@ pub enum FitBaseType {
     Uint64z,
 }
 
+pub enum FitProtocolVersion {
+    Version1 = 1,
+    Version2 = 2,
+}
+
+pub enum FitFileType {
+    Device = 1,
+    Settings,
+    Sport,
+    Activity,
+    Workout,
+    Course,
+}
+
+pub enum FitFileManufacturer {
+    Garmin = 1,
+    Zephyr = 3,
+    Development = 255,
+}
+
 // The number is very well connected to the size and the base_type.
 // For example, a start_lat will have a size of sint32 and thus 4 bytes of size.
 pub struct FitFieldDefinitionContent {
@@ -64,34 +94,48 @@ pub struct FitFieldDefinitionContent {
     pub base_type: FitBaseType,
 }
 
-const FIT_FILE_MAX_SIZE: usize = 32768;
-
 #[derive(Debug, PartialEq)]
 pub struct FitFile<const N: usize> {
     stream: Vec<u8, N>,
 }
 
 impl<const N: usize> FitFile<N> {
-    pub fn new() -> Result<Self, FitError> {
+    pub fn new(
+        protocol_version: FitProtocolVersion,
+        major: u8,
+        minor: u8,
+        file_type: FitFileType,
+        // The FIT Profile defines the date_time type as an uint32 that
+        // represents the number of seconds since midnight on December 31, 1989 UTC*.
+        // This date is often referred to as the FIT Epoch.
+        timestamp: u32,
+    ) -> Result<Self, FitError> {
         let mut fit_file = Self { stream: Vec::new() };
-        fit_file.build_header().map_err(|e| FitError::Failed(e))?;
-
-        // Definition needs to be created as well.
-        // Which fields are going to be send, etc..
-
+        fit_file
+            .build_header(protocol_version, major, minor)
+            .map_err(|e| FitError::Failed(e))?;
+        fit_file
+            .build_file_id(file_type, FitFileManufacturer::Development, timestamp)
+            .map_err(|e| FitError::Failed(e))?;
         Ok(fit_file)
     }
 
-    fn build_header(&mut self) -> Result<(), u8> {
+    fn build_header(
+        &mut self,
+        protocol_version: FitProtocolVersion,
+        major: u8,
+        minor: u8,
+    ) -> Result<(), u8> {
         // Header Size
         self.stream.push(14)?;
 
         // Protocol Version
-        self.stream.push(0x20)?; // Protocol Version 2.0
+        self.stream.push(4 << protocol_version as u8)?;
 
-        // Profile Version (21.32)
+        let profile_version: u16 = major as u16 * 1000 + minor as u16;
+        // Profile Version
         self.stream
-            .extend_from_slice(&2132u16.to_le_bytes())
+            .extend_from_slice(&profile_version.to_le_bytes())
             .map_err(|_e| 0)?;
 
         // Data size (4 bytes)
@@ -107,8 +151,48 @@ impl<const N: usize> FitFile<N> {
         Ok(())
     }
 
+    /// All FIT files must contain a single File Id message. The File Id
+    /// message identifies the intent of the FIT file through the Type field.
+    /// The File Id message should be the first message in the file.
+    fn build_file_id(
+        &mut self,
+        file_type: FitFileType,
+        manufacturer: FitFileManufacturer,
+        timestamp: u32,
+    ) -> Result<(), u8> {
+        self.define(
+            FitMessageArchitecture::LSB,
+            FitGlobalMessageNumber::FileId,
+            &[
+                FitFieldDefinitionContent {
+                    number: FitFileIdFieldDefinitionNumber::Type as u8,
+                    size: 1,
+                    base_type: FitBaseType::Uint8,
+                },
+                FitFieldDefinitionContent {
+                    number: FitFileIdFieldDefinitionNumber::Manufacturer as u8,
+                    size: 2,
+                    base_type: FitBaseType::Uint16,
+                },
+                FitFieldDefinitionContent {
+                    number: FitFileIdFieldDefinitionNumber::TimeCreated as u8,
+                    size: 4,
+                    base_type: FitBaseType::Uint32,
+                },
+            ],
+        )?;
+
+        let mut buffer = [0u8; 7]; // 1 + 2 + 4 bytes
+        buffer[0] = file_type as u8;
+        buffer[1..3].copy_from_slice(&(manufacturer as u16).to_le_bytes());
+        buffer[3..7].copy_from_slice(&(timestamp).to_le_bytes());
+        self.push(&buffer)?;
+
+        Ok(())
+    }
+
     fn build_record_header(&mut self, msg_type: FitMessageType) -> Result<(), u8> {
-        self.stream.push(0b0100_0000 & msg_type as u8)?;
+        self.stream.push(msg_type as u8)?;
         Ok(())
     }
 
@@ -193,12 +277,11 @@ impl<const N: usize> FitFile<N> {
 
     pub fn define(
         &mut self,
-        msg_type: FitMessageType,
         arch: FitMessageArchitecture,
         global_msg_num: FitGlobalMessageNumber,
         fields_def: &[FitFieldDefinitionContent],
     ) -> Result<(), u8> {
-        self.build_record_header(msg_type)?;
+        self.build_record_header(FitMessageType::DefinitionMessage)?;
         self.build_message_definition_content(arch, global_msg_num, fields_def)?;
         Ok(())
     }
