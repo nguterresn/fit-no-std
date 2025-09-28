@@ -59,6 +59,40 @@ pub enum FitGlobalMessageType {
     Record = 20,
     Workout = 26,
     WorkoutStep = 27,
+    Activity = 34,
+}
+
+pub enum FitActivityType {
+    Manual,
+    AutoMultiSport,
+}
+
+pub enum FitEventType {
+    Timer,
+    Workout = 3,
+    WorkoutStep,
+    PowerDown,
+    PowerUp,
+    OffCourse,
+    Session,
+    Lap,
+    CoursePoint,
+    Battery,
+    Activity = 26,
+    Length = 28,
+}
+
+pub enum FitEventTypeType {
+    Start,
+    Stop,
+    ConsecutiveDepreciated,
+    Marker,
+    StopAll,
+    BeginDepreciated,
+    EndDepreciated,
+    EndAllDepreciated,
+    StopDisable,
+    StopDisableAll,
 }
 
 #[derive(Debug)]

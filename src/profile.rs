@@ -1,6 +1,8 @@
-use crate::types::{
-    FitBaseType, FitDisplayMeasureType, FitFileManufacturerType, FitFileType, FitSportType,
-    FitSubSportType, FitWorkoutStepDuration, FitWorkoutStepTarget,
+use crate::{
+    types::{
+        FitBaseType, FitDisplayMeasureType, FitFileManufacturerType, FitFileType, FitSportType,
+        FitSubSportType, FitWorkoutStepDuration, FitWorkoutStepTarget,
+    }, FitActivityType, FitEventType, FitEventTypeType
 };
 use core::mem::size_of;
 
@@ -69,6 +71,54 @@ impl FitFieldDefinition for FitFileIdFieldDefinition {
 ////////////////////////////
 // ACTIVITY FILE SETTINGS //
 ////////////////////////////
+
+pub enum FitActivityFieldDefinition {
+    Timestamp,
+    TotalTimerTime,
+    NumSessions,
+    Type,
+    Event,
+    EventType,
+    LocalTimestamp,
+    EventGroup,
+}
+
+impl FitFieldDefinition for FitActivityFieldDefinition {
+    fn base_type(&self) -> FitBaseType {
+        match self {
+            Self::Timestamp => FitBaseType::Uint32,
+            Self::TotalTimerTime => FitBaseType::Uint32,
+            Self::NumSessions => FitBaseType::Uint16,
+            Self::Type => FitBaseType::Enum,
+            Self::Event => FitBaseType::Enum,
+            Self::EventType => FitBaseType::Enum,
+            Self::LocalTimestamp => FitBaseType::Uint32,
+            Self::EventGroup => FitBaseType::Uint8,
+        }
+    }
+
+    fn size(&self) -> usize {
+        match self {
+            Self::Type => size_of::<FitActivityType>(),
+            Self::Event => size_of::<FitEventType>(),
+            Self::EventType => size_of::<FitEventTypeType>(),
+            _ => self.base_type().size(),
+        }
+    }
+
+    fn field_number(&self) -> u8 {
+        match self {
+            Self::Timestamp => 253,
+            Self::TotalTimerTime => 0,
+            Self::NumSessions => 1,
+            Self::Type => 2,
+            Self::Event => 3,
+            Self::EventType => 4,
+            Self::LocalTimestamp => 5,
+            Self::EventGroup => 6,
+        }
+    }
+}
 
 pub enum FitLapFieldDefinition {
     StartPositionLat,

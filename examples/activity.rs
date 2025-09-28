@@ -1,6 +1,6 @@
 use std::{fs::File, io::Write};
 
-use fit_no_std::{FitFile, FitFileType, FitProtocolVersion};
+use fit_no_std::{FitFile, FitFileType, FitGlobalMessageType, FitProtocolVersion};
 
 fn main() {
     let ts: u32 = 1758989430;
@@ -15,23 +15,14 @@ fn main() {
     )
     .unwrap();
 
-    // // Define timestamp, start_pos_lat
-    // fit.define(
-    //     FitGlobalMessageNumber::Lap,
-    //     &[
-    //         FitFieldDefinitionContent {
-    //             number: FitLapFieldDefinitionNumber::Timestamp as u8,
-    //             size: 4,
-    //             base_type: FitBaseType::Uint32,
-    //         },
-    //         FitFieldDefinitionContent {
-    //             number: FitLapFieldDefinitionNumber::StartPositionLat as u8,
-    //             size: 4,
-    //             base_type: FitBaseType::Sint32,
-    //         },
-    //     ],
-    // )
-    // .unwrap();
+    // Start an activity [required]
+    fit.define(
+        FitGlobalMessageType::Activity,
+        &[
+
+        ],
+    )
+    .unwrap();
 
     // Push timestamp, start_pos_lat
     let mut data: [u8; 8] = [0; 8];
