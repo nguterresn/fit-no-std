@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use heapless::Vec;
 
 #[derive(Debug, PartialEq)]
@@ -39,6 +37,7 @@ pub enum FitLapFieldDefinitionNumber {
     StartPositionLong,
     EndPositionLat,
     EndPositionLong,
+    Timestamp = 253,
 }
 
 #[derive(Debug)]
@@ -127,19 +126,18 @@ impl<const N: usize> FitFile<N> {
         major: u8,
         minor: u8,
         file_type: FitFileType,
-        timestamp: u32,
+        ts: u32,
     ) -> Result<Self, FitError> {
         let mut fit_file = Self {
             stream: Vec::new(),
             arch: FitMessageArchitecture::LSB,
             manufacturer: FitFileManufacturer::Development,
         };
-
         fit_file
             .build_header(protocol_version, major, minor)
             .map_err(|e| FitError::Failed(e))?;
         fit_file
-            .build_file_id(file_type, timestamp)
+            .build_file_id(file_type, ts)
             .map_err(|e| FitError::Failed(e))?;
         Ok(fit_file)
     }
@@ -184,7 +182,7 @@ impl<const N: usize> FitFile<N> {
         // The FIT Profile defines the date_time type as an uint32 that
         // represents the number of seconds since midnight on December 31, 1989 UTC*.
         // This date is often referred to as the FIT Epoch.
-        timestamp: u32,
+        ts: u32,
     ) -> Result<(), u8> {
         self.define(
             FitGlobalMessageNumber::FileId,
@@ -210,7 +208,7 @@ impl<const N: usize> FitFile<N> {
         let mut buffer = [0u8; 7]; // 1 + 2 + 4 bytes
         buffer[0] = file_type as u8;
         buffer[1..3].copy_from_slice(&(self.manufacturer as u16).to_le_bytes());
-        buffer[3..7].copy_from_slice(&(timestamp).to_le_bytes());
+        buffer[3..7].copy_from_slice(&(ts).to_le_bytes());
         self.push(&buffer)?;
 
         Ok(())

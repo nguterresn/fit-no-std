@@ -16,16 +16,29 @@ fn main() {
         ts as u32,
     )
     .unwrap();
+    // Define timestamp, start_pos_lat
     fit.define(
         FitGlobalMessageNumber::Lap,
-        &[FitFieldDefinitionContent {
-            number: FitLapFieldDefinitionNumber::StartPositionLat as u8,
-            size: 4,
-            base_type: FitBaseType::Sint32,
-        }],
+        &[
+            FitFieldDefinitionContent {
+                number: FitLapFieldDefinitionNumber::Timestamp as u8,
+                size: 4,
+                base_type: FitBaseType::Uint32,
+            },
+            FitFieldDefinitionContent {
+                number: FitLapFieldDefinitionNumber::StartPositionLat as u8,
+                size: 4,
+                base_type: FitBaseType::Sint32,
+            },
+        ],
     )
     .unwrap();
-    fit.push(&123u32.to_be_bytes()).unwrap(); // StartPositionLat is 123 LSB
+
+    // Push timestamp, start_pos_lat
+    let mut data: [u8; 8] = [0; 8];
+    data[0..4].copy_from_slice(&(ts).to_le_bytes());
+    data[4..8].copy_from_slice(&(123u32).to_le_bytes());
+    fit.push(&data).unwrap(); // StartPositionLat is 123 LSB
 
     let buf = fit.done().unwrap();
     println!("{:02X?}", buf);
@@ -35,6 +48,3 @@ fn main() {
         file.write_all(buf).unwrap();
     }
 }
-
-// [
-// 14, 16, 179, 82, 46, 37, 18, 9, 4, 70, 73, 84, 0, 0, 64, 0, 0, 0, 0, 3, 0, 1, 2, 1, 2, 4, 4, 4, 6, 0, 4, 255, 0, 118, 12, 216, 104, 64, 0, 0, 19, 0, 1, 3, 4, 5, 0, 0, 0, 0, 123, 51, 245]
