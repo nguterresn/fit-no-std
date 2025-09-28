@@ -8,6 +8,7 @@ use fit_no_std::{
 fn main() {
     let ts: u32 = 1758989430;
     println!("Let's try to save a .fit file! Timestamp: {}", ts);
+
     let mut fit = FitFile::<128>::new(
         FitProtocolVersion::Version2,
         21,
@@ -16,6 +17,7 @@ fn main() {
         ts as u32,
     )
     .unwrap();
+
     // Define timestamp, start_pos_lat
     fit.define(
         FitGlobalMessageNumber::Lap,
@@ -38,13 +40,11 @@ fn main() {
     let mut data: [u8; 8] = [0; 8];
     data[0..4].copy_from_slice(&(ts).to_le_bytes());
     data[4..8].copy_from_slice(&(123u32).to_le_bytes());
-    fit.push(&data).unwrap(); // StartPositionLat is 123 LSB
+    fit.push(&data).unwrap();
 
     let buf = fit.done().unwrap();
-    println!("{:02X?}", buf);
+    // println!("{:02X?}", buf);
 
-    {
-        let mut file = File::create("example.fit").unwrap();
-        file.write_all(buf).unwrap();
-    }
+    let mut file = File::create("activity.fit").unwrap();
+    file.write_all(buf).unwrap();
 }

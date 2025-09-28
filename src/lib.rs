@@ -41,7 +41,7 @@ mod tests {
         // Header 14 bytes. + File ID def 15 bytes + File Id Data 8 bytes + 2 bytes CRC  ✅
         assert_eq!(buf.len(), 39);
         // Data Length 15 + 8  bytes (File ID data). ✅
-        assert_eq!(buf[5], 23);
+        assert_eq!(buf[4], 23);
     }
 
     #[test]

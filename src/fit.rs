@@ -57,6 +57,87 @@ pub enum FitWorkoutStepFieldDefinitionNumber {
     MessageIndex = 254,
 }
 
+#[derive(Debug)]
+pub enum FitWorkoutStepDuration {
+    Time,
+    Distance,
+    HrLessThan,
+    HrGreaterThan,
+    Calories,
+    Open,
+}
+
+#[derive(Debug)]
+pub enum FitWorkoutStepTarget {
+    Speed,
+    HeartRate,
+    Open,
+    Cadence,
+    Power,
+    Grade,
+    Resistance,
+    Power3s,
+    Power10s,
+    Power30s,
+    PowerLap,
+    SwimStroke,
+    SpeedLap,
+    HeartRateLap,
+}
+
+#[derive(Debug)]
+pub enum FitSportType {
+    Generic,
+    Running,
+    Cycling,
+    Transition,
+    FitnessEquipment,
+    Swimming,
+    Basketball,
+    Soccer,
+    Tennis,
+    AmericanFootball,
+    Training,
+    Walking,
+    CrossCountrySkiing,
+    AlpineSkiing,
+    Snowboarding,
+    Rowing,
+    Mountaineering,
+    Hiking,
+    Multisport,
+    Paddling,
+    Flying,
+    EBiking,
+    Motorcycling,
+    Boating,
+    Driving,
+    Golf,
+    HangGliding,
+    HorsebackRiding,
+    Hunting,
+    Fishing,
+    InlineSkating,
+    RockClimbing,
+    Sailing,
+    IceSkating,
+    SkyDiving,
+    Snowshoeing,
+    Snowmobiling,
+    StandUpPaddleboarding,
+    Surfing,
+    Wakeboarding,
+    WaterSkiing,
+    Kayaking,
+    Rafting,
+    Windsurfing,
+    Kitesurfing,
+    Tactical,
+    Jumpmaster,
+    Boxing,
+    All = 254,
+}
+
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub enum FitMessageArchitecture {
     LSB,
