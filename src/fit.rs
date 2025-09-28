@@ -1,141 +1,19 @@
 use heapless::Vec;
 
+use crate::{
+    profile::{FitFieldDefinition, FitFileIdFieldDefinition},
+    types::{FitFileManufacturerType, FitFileType, FitGlobalMessageType},
+};
+
 #[derive(Debug, PartialEq)]
 pub enum FitError {
     Failed(u8),
 }
 
 #[derive(Debug)]
-pub enum FitMessageType {
+enum FitMessageType {
     DataMessage,
     DefinitionMessage = 64,
-}
-
-#[derive(Debug)]
-pub enum FitGlobalMessageNumber {
-    FileId,
-    Capabilities,
-    Lap = 19,
-    Record = 20,
-    Workout = 26,
-    WorkoutStep = 27,
-}
-
-pub enum FitFileIdFieldDefinitionNumber {
-    Type,         // Required
-    Manufacturer, // Required
-    Product,
-    SerialNumber,
-    TimeCreated, // Required
-    Number,
-    ProductName = 8,
-}
-
-#[derive(Debug)]
-pub enum FitLapFieldDefinitionNumber {
-    StartPositionLat = 3,
-    StartPositionLong,
-    EndPositionLat,
-    EndPositionLong,
-    Timestamp = 253,
-}
-
-#[derive(Debug)]
-pub enum FitWorkoutFieldDefinitionNumber {
-    Sport = 4,         // sport
-    Capabilities = 5,  // workout_capabilities
-    NumValidSteps = 6, // uint16
-}
-
-#[derive(Debug)]
-pub enum FitWorkoutStepFieldDefinitionNumber {
-    DurationType = 1,
-    DurationValue,
-    TargetType,
-    TargetValue,
-    Intensity = 7,
-    MessageIndex = 254,
-}
-
-#[derive(Debug)]
-pub enum FitWorkoutStepDuration {
-    Time,
-    Distance,
-    HrLessThan,
-    HrGreaterThan,
-    Calories,
-    Open,
-}
-
-#[derive(Debug)]
-pub enum FitWorkoutStepTarget {
-    Speed,
-    HeartRate,
-    Open,
-    Cadence,
-    Power,
-    Grade,
-    Resistance,
-    Power3s,
-    Power10s,
-    Power30s,
-    PowerLap,
-    SwimStroke,
-    SpeedLap,
-    HeartRateLap,
-}
-
-#[derive(Debug)]
-pub enum FitSportType {
-    Generic,
-    Running,
-    Cycling,
-    Transition,
-    FitnessEquipment,
-    Swimming,
-    Basketball,
-    Soccer,
-    Tennis,
-    AmericanFootball,
-    Training,
-    Walking,
-    CrossCountrySkiing,
-    AlpineSkiing,
-    Snowboarding,
-    Rowing,
-    Mountaineering,
-    Hiking,
-    Multisport,
-    Paddling,
-    Flying,
-    EBiking,
-    Motorcycling,
-    Boating,
-    Driving,
-    Golf,
-    HangGliding,
-    HorsebackRiding,
-    Hunting,
-    Fishing,
-    InlineSkating,
-    RockClimbing,
-    Sailing,
-    IceSkating,
-    SkyDiving,
-    Snowshoeing,
-    Snowmobiling,
-    StandUpPaddleboarding,
-    Surfing,
-    Wakeboarding,
-    WaterSkiing,
-    Kayaking,
-    Rafting,
-    Windsurfing,
-    Kitesurfing,
-    Tactical,
-    Jumpmaster,
-    Boxing,
-    All = 254,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq)]
@@ -144,61 +22,16 @@ pub enum FitMessageArchitecture {
     MSB,
 }
 
-#[derive(Clone, Copy)]
-pub enum FitBaseType {
-    Enum,
-    Sint8,
-    Uint8,
-    Sint16,
-    Uint16,
-    Sint32,
-    Uint32,
-    String,
-    Float32,
-    Float64,
-    Uint8z,
-    Uint16z,
-    Uint32z,
-    Byte,
-    Sint64,
-    Uint64,
-    Uint64z,
-}
-
 pub enum FitProtocolVersion {
     Version1 = 1,
     Version2 = 2,
-}
-
-pub enum FitFileType {
-    Device = 1,
-    Settings,
-    Sport,
-    Activity,
-    Workout,
-    Course,
-}
-
-#[derive(Debug, Copy, Clone, PartialEq)]
-pub enum FitFileManufacturer {
-    Garmin = 1,
-    Zephyr = 3,
-    Development = 255,
-}
-
-// The number is very well connected to the size and the base_type.
-// For example, a start_lat will have a size of sint32 and thus 4 bytes of size.
-pub struct FitFieldDefinitionContent {
-    pub number: u8, // Varies per 'FitGlobalMessageNumber'
-    pub size: u8,
-    pub base_type: FitBaseType,
 }
 
 #[derive(Debug, PartialEq)]
 pub struct FitFile<const N: usize> {
     stream: Vec<u8, N>,
     arch: FitMessageArchitecture,
-    manufacturer: FitFileManufacturer,
+    manufacturer: FitFileManufacturerType,
 }
 
 impl<const N: usize> FitFile<N> {
@@ -212,7 +45,7 @@ impl<const N: usize> FitFile<N> {
         let mut fit_file = Self {
             stream: Vec::new(),
             arch: FitMessageArchitecture::LSB,
-            manufacturer: FitFileManufacturer::Development,
+            manufacturer: FitFileManufacturerType::Development,
         };
         fit_file
             .build_header(protocol_version, major, minor)
@@ -266,23 +99,11 @@ impl<const N: usize> FitFile<N> {
         ts: u32,
     ) -> Result<(), u8> {
         self.define(
-            FitGlobalMessageNumber::FileId,
+            FitGlobalMessageType::FileId,
             &[
-                FitFieldDefinitionContent {
-                    number: FitFileIdFieldDefinitionNumber::Type as u8,
-                    size: 1,
-                    base_type: FitBaseType::Uint8,
-                },
-                FitFieldDefinitionContent {
-                    number: FitFileIdFieldDefinitionNumber::Manufacturer as u8,
-                    size: 2,
-                    base_type: FitBaseType::Uint16,
-                },
-                FitFieldDefinitionContent {
-                    number: FitFileIdFieldDefinitionNumber::TimeCreated as u8,
-                    size: 4,
-                    base_type: FitBaseType::Uint32,
-                },
+                FitFileIdFieldDefinition::Type,
+                FitFileIdFieldDefinition::Manufacturer,
+                FitFileIdFieldDefinition::TimeCreated,
             ],
         )?;
 
@@ -300,10 +121,10 @@ impl<const N: usize> FitFile<N> {
         Ok(())
     }
 
-    fn build_message_definition_content(
+    fn build_message_definition_content<T: FitFieldDefinition>(
         &mut self,
-        gmsg_num: FitGlobalMessageNumber,
-        fields_def: &[FitFieldDefinitionContent],
+        gmsg_num: FitGlobalMessageType,
+        fields_def: &[T],
     ) -> Result<(), u8> {
         // [0] Reserved
         self.stream.push(0)?;
@@ -321,24 +142,19 @@ impl<const N: usize> FitFile<N> {
 
         // [5:N] Field Definition
         for def in fields_def {
-            self.build_field_definition_content(def.number, def.size, def.base_type as u8)?;
+            self.build_field_definition_content(def)?;
         }
 
         Ok(())
     }
 
-    fn build_field_definition_content(
+    fn build_field_definition_content<T: FitFieldDefinition>(
         &mut self,
-        field_def_number: u8,
-        size: u8,
-        base_type: u8,
+        field: &T,
     ) -> Result<(), u8> {
-        // Field Definition Number
-        self.stream.push(field_def_number)?;
-        // Size
-        self.stream.push(size)?;
-        // Base Type
-        self.stream.push(base_type)?;
+        self.stream
+            .extend_from_slice(&field.get())
+            .map_err(|_e| 0)?;
         Ok(())
     }
 
@@ -378,10 +194,10 @@ impl<const N: usize> FitFile<N> {
         Ok(&self.stream)
     }
 
-    pub fn define(
+    pub fn define<T: FitFieldDefinition>(
         &mut self,
-        global_msg_num: FitGlobalMessageNumber,
-        fields_def: &[FitFieldDefinitionContent],
+        global_msg_num: FitGlobalMessageType,
+        fields_def: &[T],
     ) -> Result<(), u8> {
         self.build_record_header(FitMessageType::DefinitionMessage)?;
         self.build_message_definition_content(global_msg_num, fields_def)?;

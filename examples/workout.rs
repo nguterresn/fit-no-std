@@ -1,12 +1,9 @@
 use std::{fs::File, io::Write};
 
 use fit_no_std::{
-    FitBaseType, FitFieldDefinitionContent, FitFile, FitFileType, FitGlobalMessageNumber,
-    FitProtocolVersion,
-    fit::{
-        FitSportType, FitWorkoutFieldDefinitionNumber, FitWorkoutStepDuration,
-        FitWorkoutStepFieldDefinitionNumber, FitWorkoutStepTarget,
-    },
+    FitFile, FitFileType, FitGlobalMessageType, FitProtocolVersion, FitSportType,
+    FitWorkoutFieldDefinition, FitWorkoutStepDuration, FitWorkoutStepFieldDefinition,
+    FitWorkoutStepTarget,
 };
 
 fn main() {
@@ -28,18 +25,10 @@ fn main() {
 
     // Define sport, num_valid_steps
     fit.define(
-        FitGlobalMessageNumber::Workout,
+        FitGlobalMessageType::Workout,
         &[
-            FitFieldDefinitionContent {
-                number: FitWorkoutFieldDefinitionNumber::Sport as u8,
-                size: 1,
-                base_type: FitBaseType::Enum,
-            },
-            FitFieldDefinitionContent {
-                number: FitWorkoutFieldDefinitionNumber::NumValidSteps as u8,
-                size: 2,
-                base_type: FitBaseType::Uint16,
-            },
+            FitWorkoutFieldDefinition::Sport,
+            FitWorkoutFieldDefinition::NumValidSteps,
         ],
     )
     .unwrap();
@@ -52,28 +41,12 @@ fn main() {
 
     // Define message_index, duration_type, duration_value, target_type
     fit.define(
-        FitGlobalMessageNumber::WorkoutStep,
+        FitGlobalMessageType::WorkoutStep,
         &[
-            FitFieldDefinitionContent {
-                number: FitWorkoutStepFieldDefinitionNumber::MessageIndex as u8,
-                size: 1,
-                base_type: FitBaseType::Uint8,
-            },
-            FitFieldDefinitionContent {
-                number: FitWorkoutStepFieldDefinitionNumber::DurationType as u8,
-                size: 1,
-                base_type: FitBaseType::Enum, // wkt_step_duration
-            },
-            FitFieldDefinitionContent {
-                number: FitWorkoutStepFieldDefinitionNumber::DurationValue as u8,
-                size: 4,
-                base_type: FitBaseType::Uint32,
-            },
-            FitFieldDefinitionContent {
-                number: FitWorkoutStepFieldDefinitionNumber::TargetType as u8,
-                size: 1,
-                base_type: FitBaseType::Enum, // wkt_step_target
-            },
+            FitWorkoutStepFieldDefinition::MessageIndex,
+            FitWorkoutStepFieldDefinition::DurationType,
+            FitWorkoutStepFieldDefinition::DurationValue,
+            FitWorkoutStepFieldDefinition::TargetType,
         ],
     )
     .unwrap();

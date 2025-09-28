@@ -1,26 +1,17 @@
 #![no_std]
 
 pub mod fit;
+pub mod profile;
+pub mod types;
 
-pub use fit::FitBaseType;
-pub use fit::FitError;
-pub use fit::FitFieldDefinitionContent;
-pub use fit::FitFile;
-pub use fit::FitFileType;
-pub use fit::FitGlobalMessageNumber;
-pub use fit::FitLapFieldDefinitionNumber;
-pub use fit::FitMessageArchitecture;
-pub use fit::FitMessageType;
-pub use fit::FitProtocolVersion;
+pub use fit::{FitError, FitFile, FitMessageArchitecture, FitProtocolVersion};
+pub use profile::*;
+pub use types::*;
 
 #[cfg(test)]
 mod tests {
     use crate::{
-        FitFileType,
-        fit::{
-            FitBaseType, FitFieldDefinitionContent, FitFile, FitGlobalMessageNumber,
-            FitLapFieldDefinitionNumber, FitProtocolVersion,
-        },
+        FitFile, FitFileType, FitGlobalMessageType, FitLapFieldDefinition, FitProtocolVersion,
     };
 
     #[test]
@@ -55,12 +46,8 @@ mod tests {
         )
         .unwrap();
         let result = fit.define(
-            FitGlobalMessageNumber::Lap,
-            &[FitFieldDefinitionContent {
-                number: FitLapFieldDefinitionNumber::StartPositionLat as u8,
-                size: 4,
-                base_type: FitBaseType::Sint32,
-            }],
+            FitGlobalMessageType::Lap,
+            &[FitLapFieldDefinition::StartPositionLat],
         );
         assert!(result.is_ok());
         fit.push(&123u32.to_be_bytes()).unwrap(); // StartPositionLat is 123 LSB
