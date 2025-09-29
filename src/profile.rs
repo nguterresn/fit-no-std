@@ -1,8 +1,9 @@
 use crate::{
+    FitActivityType, FitEventType, FitEventTypeType,
     types::{
         FitBaseType, FitDisplayMeasureType, FitFileManufacturerType, FitFileType, FitSportType,
         FitSubSportType, FitWorkoutStepDuration, FitWorkoutStepTarget,
-    }, FitActivityType, FitEventType, FitEventTypeType
+    },
 };
 use core::mem::size_of;
 
@@ -120,38 +121,112 @@ impl FitFieldDefinition for FitActivityFieldDefinition {
     }
 }
 
+// Start Time, Total Elapsed Time, Total Timer Time, and Timestamp fields are required for all Summary messages.
 pub enum FitLapFieldDefinition {
+    StartTime,
     StartPositionLat,
     StartPositionLong,
     EndPositionLat,
     EndPositionLong,
+    TotalElapsedTime,
+    TotalTimerTime,
+    TotalDistance,
+    TotalCalories,
+    AverageSpeed,
+    MaxSpeed,
+    AverageHeartRate,
+    MaxHeartRate,
+    Sport,
+    SubSport,
     Timestamp,
 }
 
 impl FitFieldDefinition for FitLapFieldDefinition {
     fn base_type(&self) -> FitBaseType {
         match self {
-            Self::StartPositionLat => FitBaseType::Uint32,
-            Self::StartPositionLong => FitBaseType::Uint32,
-            Self::EndPositionLat => FitBaseType::Uint32,
-            Self::EndPositionLong => FitBaseType::Uint32,
+            Self::StartTime => FitBaseType::Uint32,
+            Self::StartPositionLat => FitBaseType::Sint32,
+            Self::StartPositionLong => FitBaseType::Sint32,
+            Self::EndPositionLat => FitBaseType::Sint32,
+            Self::EndPositionLong => FitBaseType::Sint32,
+            Self::TotalElapsedTime => FitBaseType::Uint32,
+            Self::TotalTimerTime => FitBaseType::Uint32,
+            Self::TotalDistance => FitBaseType::Uint32,
+            Self::TotalCalories => FitBaseType::Uint16,
+            Self::AverageSpeed => FitBaseType::Uint16,
+            Self::MaxSpeed => FitBaseType::Uint16,
+            Self::AverageHeartRate => FitBaseType::Uint8,
+            Self::MaxHeartRate => FitBaseType::Uint8,
+            Self::Sport => FitBaseType::Enum,
+            Self::SubSport => FitBaseType::Enum,
             Self::Timestamp => FitBaseType::Uint32,
         }
     }
 
     fn size(&self) -> usize {
         match self {
+            Self::Sport => size_of::<FitSportType>(),
+            Self::SubSport => size_of::<FitSubSportType>(),
             _ => self.base_type().size(),
         }
     }
 
     fn field_number(&self) -> u8 {
         match self {
+            Self::StartTime => 2,
             Self::StartPositionLat => 3,
             Self::StartPositionLong => 4,
             Self::EndPositionLat => 5,
             Self::EndPositionLong => 6,
+            Self::TotalElapsedTime => 7,
+            Self::TotalTimerTime => 8,
+            Self::TotalDistance => 9,
+            Self::TotalCalories => 11,
+            Self::AverageSpeed => 13,
+            Self::MaxSpeed => 14,
+            Self::AverageHeartRate => 15,
+            Self::MaxHeartRate => 16,
+            Self::Sport => 25,
+            Self::SubSport => 39,
             Self::Timestamp => 254,
+        }
+    }
+}
+
+pub enum FitEventFieldDefinition {
+    Timestamp,
+    Event,
+    EventType,
+    Data16,
+    Data,
+}
+
+impl FitFieldDefinition for FitEventFieldDefinition {
+    fn base_type(&self) -> FitBaseType {
+        match self {
+            Self::Timestamp => FitBaseType::Uint32,
+            Self::Event => FitBaseType::Enum,
+            Self::EventType => FitBaseType::Enum,
+            Self::Data16 => FitBaseType::Uint16,
+            Self::Data => FitBaseType::Uint32,
+        }
+    }
+
+    fn size(&self) -> usize {
+        match self {
+            Self::Event => size_of::<FitEventType>(),
+            Self::EventType => size_of::<FitEventTypeType>(),
+            _ => self.base_type().size(),
+        }
+    }
+
+    fn field_number(&self) -> u8 {
+        match self {
+            Self::Timestamp => 253,
+            Self::Event => 0,
+            Self::EventType => 1,
+            Self::Data16 => 2,
+            Self::Data => 3,
         }
     }
 }
