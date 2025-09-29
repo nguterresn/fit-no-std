@@ -35,40 +35,27 @@ pub struct FitFile<const N: usize> {
 }
 
 impl<const N: usize> FitFile<N> {
-    pub fn new(
-        protocol_version: FitProtocolVersion,
-        major: u8,
-        minor: u8,
-        file_type: FitFileType,
-        ts: u32,
-    ) -> Result<Self, FitError> {
+    pub fn new(file_type: FitFileType, ts: u32) -> Result<Self, FitError> {
         let mut fit_file = Self {
             stream: Vec::new(),
             arch: FitMessageArchitecture::LSB,
             manufacturer: FitFileManufacturerType::Development,
         };
-        fit_file
-            .build_header(protocol_version, major, minor)
-            .map_err(|e| FitError::Failed(e))?;
+        fit_file.build_header().map_err(|e| FitError::Failed(e))?;
         fit_file
             .build_file_id(file_type, ts)
             .map_err(|e| FitError::Failed(e))?;
         Ok(fit_file)
     }
 
-    fn build_header(
-        &mut self,
-        protocol_version: FitProtocolVersion,
-        major: u8,
-        minor: u8,
-    ) -> Result<(), u8> {
+    fn build_header(&mut self) -> Result<(), u8> {
         // Header Size
         self.stream.push(14)?;
 
         // Protocol Version
-        self.stream.push(4 << protocol_version as u8)?;
+        self.stream.push(4 << FitProtocolVersion::Version2 as u8)?;
 
-        let profile_version: u16 = major as u16 * 1000 + minor as u16;
+        let profile_version: u16 = 21 as u16 * 1000 + 171 as u16;
         // Profile Version
         self.stream
             .extend_from_slice(&profile_version.to_le_bytes())

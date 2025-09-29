@@ -16,13 +16,7 @@ mod tests {
 
     #[test]
     fn create_min_file() {
-        let fit = FitFile::<128>::new(
-            FitProtocolVersion::Version2,
-            21,
-            171,
-            FitFileType::Activity,
-            0,
-        );
+        let fit = FitFile::<128>::new(FitFileType::Activity, 0);
         assert!(fit.is_ok());
 
         let mut fit_file = fit.unwrap();
@@ -37,14 +31,7 @@ mod tests {
 
     #[test]
     fn create_def_activity_min_file() {
-        let mut fit = FitFile::<128>::new(
-            FitProtocolVersion::Version2,
-            21,
-            171,
-            FitFileType::Activity,
-            0,
-        )
-        .unwrap();
+        let mut fit = FitFile::<128>::new(FitFileType::Activity, 0).unwrap();
         let result = fit.define(
             FitGlobalMessageType::Lap,
             &[FitLapFieldDefinition::StartPositionLat],

@@ -14,14 +14,7 @@ fn main() {
     // - File Id [1]
     // - Workout [1]
     // - Woukout Step [1 .. N]
-    let mut fit = FitFile::<128>::new(
-        FitProtocolVersion::Version2,
-        21,
-        171,
-        FitFileType::Workout,
-        ts as u32,
-    )
-    .unwrap();
+    let mut fit = FitFile::<128>::new(FitFileType::Workout, ts as u32).unwrap();
 
     // Define sport, num_valid_steps
     fit.define(
