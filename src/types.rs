@@ -24,11 +24,11 @@ pub enum FitBaseType {
 impl FitBaseType {
     pub fn size(&self) -> usize {
         match self {
-            Self::Sint8 | Self::Uint8 | Self::Uint8z | Self::Byte => 1,
+            Self::Sint8 | Self::Uint8 | Self::Uint8z | Self::Byte | Self::Enum => 1,
             Self::Sint16 | Self::Uint16 | Self::Uint16z => 2,
             Self::Sint32 | Self::Uint32 | Self::Float32 | Self::Uint32z => 4,
             Self::Float64 | Self::Sint64 | Self::Uint64 | Self::Uint64z => 8,
-            Self::String | Self::Enum => 1, // Variable.
+            Self::String => 1, // Variable.
         }
     }
 }

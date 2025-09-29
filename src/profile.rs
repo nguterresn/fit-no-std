@@ -1,21 +1,13 @@
-use crate::{
-    FitActivityType, FitEventType, FitEventTypeType,
-    types::{
-        FitBaseType, FitDisplayMeasureType, FitFileManufacturerType, FitFileType, FitSportType,
-        FitSubSportType, FitWorkoutStepDuration, FitWorkoutStepTarget,
-    },
-};
-use core::mem::size_of;
+use crate::types::FitBaseType;
 
 pub trait FitFieldDefinition {
     fn base_type(&self) -> FitBaseType;
-    fn size(&self) -> usize;
     fn field_number(&self) -> u8;
 
     fn get(&self) -> [u8; 3] {
         [
             self.field_number(),
-            self.size() as u8,
+            self.base_type().size() as u8,
             self.base_type() as u8,
         ]
     }
@@ -39,20 +31,12 @@ impl FitFieldDefinition for FitFileIdFieldDefinition {
     fn base_type(&self) -> FitBaseType {
         match self {
             Self::Type => FitBaseType::Enum,
-            Self::Manufacturer => FitBaseType::Enum,
+            Self::Manufacturer => FitBaseType::Uint16,
             Self::Product => FitBaseType::Uint16,
             Self::SerialNumber => FitBaseType::Uint32z,
             Self::TimeCreated => FitBaseType::Uint32,
             Self::Number => FitBaseType::Uint16,
             Self::ProductName => FitBaseType::String,
-        }
-    }
-
-    fn size(&self) -> usize {
-        match self {
-            Self::Type => size_of::<FitFileType>(),
-            Self::Manufacturer => size_of::<FitFileManufacturerType>(),
-            _ => self.base_type().size(),
         }
     }
 
@@ -95,15 +79,6 @@ impl FitFieldDefinition for FitActivityFieldDefinition {
             Self::EventType => FitBaseType::Enum,
             Self::LocalTimestamp => FitBaseType::Uint32,
             Self::EventGroup => FitBaseType::Uint8,
-        }
-    }
-
-    fn size(&self) -> usize {
-        match self {
-            Self::Type => size_of::<FitActivityType>(),
-            Self::Event => size_of::<FitEventType>(),
-            Self::EventType => size_of::<FitEventTypeType>(),
-            _ => self.base_type().size(),
         }
     }
 
@@ -163,14 +138,6 @@ impl FitFieldDefinition for FitLapFieldDefinition {
         }
     }
 
-    fn size(&self) -> usize {
-        match self {
-            Self::Sport => size_of::<FitSportType>(),
-            Self::SubSport => size_of::<FitSubSportType>(),
-            _ => self.base_type().size(),
-        }
-    }
-
     fn field_number(&self) -> u8 {
         match self {
             Self::StartTime => 2,
@@ -209,14 +176,6 @@ impl FitFieldDefinition for FitEventFieldDefinition {
             Self::EventType => FitBaseType::Enum,
             Self::Data16 => FitBaseType::Uint16,
             Self::Data => FitBaseType::Uint32,
-        }
-    }
-
-    fn size(&self) -> usize {
-        match self {
-            Self::Event => size_of::<FitEventType>(),
-            Self::EventType => size_of::<FitEventTypeType>(),
-            _ => self.base_type().size(),
         }
     }
 
@@ -260,15 +219,6 @@ impl FitFieldDefinition for FitWorkoutFieldDefinition {
         }
     }
 
-    fn size(&self) -> usize {
-        match self {
-            Self::Sport => size_of::<FitSportType>(),
-            Self::SubSport => size_of::<FitSubSportType>(),
-            Self::PoolLengthUnit => size_of::<FitDisplayMeasureType>(),
-            _ => self.base_type().size(),
-        }
-    }
-
     fn field_number(&self) -> u8 {
         match self {
             Self::MessageIndex => 254,
@@ -307,14 +257,6 @@ impl FitFieldDefinition for FitWorkoutStepFieldDefinition {
             Self::DurationStep => FitBaseType::Uint32,
             Self::TargetType => FitBaseType::Enum,
             Self::TargetValue => FitBaseType::Uint32,
-        }
-    }
-
-    fn size(&self) -> usize {
-        match self {
-            Self::DurationType => size_of::<FitWorkoutStepDuration>(),
-            Self::TargetType => size_of::<FitWorkoutStepTarget>(),
-            _ => self.base_type().size(),
         }
     }
 
