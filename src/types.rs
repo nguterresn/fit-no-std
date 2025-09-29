@@ -55,6 +55,7 @@ pub enum FitFileManufacturerType {
 pub enum FitGlobalMessageType {
     FileId,
     Capabilities,
+    Session = 18,
     Lap = 19,
     Record = 20,
     Event = 21,

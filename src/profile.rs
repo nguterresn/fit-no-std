@@ -96,6 +96,36 @@ impl FitFieldDefinition for FitActivityFieldDefinition {
     }
 }
 
+pub enum FitSessionFieldDefinition {
+    Timestamp,
+    StartTime,
+    TotalElapsedTime,
+    TotalTimerTime,
+    TotalDistance,
+}
+
+impl FitFieldDefinition for FitSessionFieldDefinition {
+    fn base_type(&self) -> FitBaseType {
+        match self {
+            Self::Timestamp => FitBaseType::Uint32,
+            Self::StartTime => FitBaseType::Uint32,
+            Self::TotalElapsedTime => FitBaseType::Uint32,
+            Self::TotalTimerTime => FitBaseType::Uint32,
+            Self::TotalDistance => FitBaseType::Uint32,
+        }
+    }
+
+    fn field_number(&self) -> u8 {
+        match self {
+            Self::Timestamp => 253,
+            Self::StartTime => 2,
+            Self::TotalElapsedTime => 7,
+            Self::TotalTimerTime => 8,
+            Self::TotalDistance => 9,
+        }
+    }
+}
+
 // Start Time, Total Elapsed Time, Total Timer Time, and Timestamp fields are required for all Summary messages.
 pub enum FitLapFieldDefinition {
     StartTime,
