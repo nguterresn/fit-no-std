@@ -43,25 +43,25 @@ fn main() {
     data[5] = FitEventTypeType::Start as u8;
     fit.push(&data).unwrap();
 
-    // // Start Time, Total Elapsed Time, Total Timer Time, and Timestamp fields are required for all Summary messages.
-    // fit.define(
-    //     FitGlobalMessageType::Lap,
-    //     &[
-    //         FitLapFieldDefinition::Timestamp,
-    //         FitLapFieldDefinition::StartTime,
-    //         FitLapFieldDefinition::TotalElapsedTime,
-    //         FitLapFieldDefinition::TotalTimerTime,
-    //     ],
-    // )
-    // .unwrap();
+    // Start Time, Total Elapsed Time, Total Timer Time, and Timestamp fields are required for all Summary messages.
+    fit.define(
+        FitGlobalMessageType::Lap,
+        &[
+            FitLapFieldDefinition::Timestamp,
+            FitLapFieldDefinition::StartTime,
+            FitLapFieldDefinition::TotalElapsedTime,
+            FitLapFieldDefinition::TotalTimerTime,
+        ],
+    )
+    .unwrap();
 
-    // // Lap (start at +1, takes 200s, 150s of running)
-    // let mut data: [u8; 16] = [0; 16];
-    // data[0..4].copy_from_slice(&(ts + 1).to_le_bytes());
-    // data[4..8].copy_from_slice(&(ts + 1).to_le_bytes());
-    // data[8..12].copy_from_slice(&(200u32).to_le_bytes());
-    // data[12..16].copy_from_slice(&(150u32).to_le_bytes());
-    // fit.push(&data).unwrap();
+    // Lap (start at +1, takes 200s, 150s of running)
+    let mut data: [u8; 16] = [0; 16];
+    data[0..4].copy_from_slice(&(ts + 1).to_le_bytes());
+    data[4..8].copy_from_slice(&(ts + 1).to_le_bytes());
+    data[8..12].copy_from_slice(&(200u32).to_le_bytes());
+    data[12..16].copy_from_slice(&(150u32).to_le_bytes());
+    fit.push(&data).unwrap();
 
     let buf = fit.done().unwrap();
     // println!("{:02X?}", buf);

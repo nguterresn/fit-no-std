@@ -155,7 +155,7 @@ impl FitFieldDefinition for FitLapFieldDefinition {
             Self::MaxHeartRate => 16,
             Self::Sport => 25,
             Self::SubSport => 39,
-            Self::Timestamp => 254,
+            Self::Timestamp => 253,
         }
     }
 }
