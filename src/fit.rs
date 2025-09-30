@@ -34,6 +34,9 @@ pub struct FitFile<const N: usize> {
     manufacturer: FitFileManufacturerType,
 }
 
+const PROTOCOL_MAJOR: u16 = 21;
+const PROTOCOL_MINOR: u16 = 171;
+
 impl<const N: usize> FitFile<N> {
     pub fn new(file_type: FitFileType, ts: u32) -> Result<Self, FitError> {
         let mut fit_file = Self {
@@ -55,7 +58,7 @@ impl<const N: usize> FitFile<N> {
         // Protocol Version
         self.stream.push(4 << FitProtocolVersion::Version2 as u8)?;
 
-        let profile_version: u16 = 21 as u16 * 1000 + 171 as u16;
+        let profile_version: u16 = PROTOCOL_MAJOR as u16 * 1000 + PROTOCOL_MINOR as u16;
         // Profile Version
         self.stream
             .extend_from_slice(&profile_version.to_le_bytes())
