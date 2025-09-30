@@ -102,6 +102,7 @@ pub enum FitSessionFieldDefinition {
     TotalElapsedTime,
     TotalTimerTime,
     TotalDistance,
+    MessageIndex,
 }
 
 impl FitFieldDefinition for FitSessionFieldDefinition {
@@ -112,16 +113,18 @@ impl FitFieldDefinition for FitSessionFieldDefinition {
             Self::TotalElapsedTime => FitBaseType::Uint32,
             Self::TotalTimerTime => FitBaseType::Uint32,
             Self::TotalDistance => FitBaseType::Uint32,
+            Self::MessageIndex => FitBaseType::Uint16,
         }
     }
 
     fn field_number(&self) -> u8 {
         match self {
-            Self::Timestamp => 253,
             Self::StartTime => 2,
             Self::TotalElapsedTime => 7,
             Self::TotalTimerTime => 8,
             Self::TotalDistance => 9,
+            Self::Timestamp => 253,
+            Self::MessageIndex => 254,
         }
     }
 }
@@ -144,6 +147,7 @@ pub enum FitLapFieldDefinition {
     Sport,
     SubSport,
     Timestamp,
+    MessageIndex,
 }
 
 impl FitFieldDefinition for FitLapFieldDefinition {
@@ -165,6 +169,7 @@ impl FitFieldDefinition for FitLapFieldDefinition {
             Self::Sport => FitBaseType::Enum,
             Self::SubSport => FitBaseType::Enum,
             Self::Timestamp => FitBaseType::Uint32,
+            Self::MessageIndex => FitBaseType::Uint16,
         }
     }
 
@@ -186,6 +191,7 @@ impl FitFieldDefinition for FitLapFieldDefinition {
             Self::Sport => 25,
             Self::SubSport => 39,
             Self::Timestamp => 253,
+            Self::MessageIndex => 254,
         }
     }
 }
@@ -238,7 +244,7 @@ pub enum FitWorkoutFieldDefinition {
 impl FitFieldDefinition for FitWorkoutFieldDefinition {
     fn base_type(&self) -> FitBaseType {
         match self {
-            Self::MessageIndex => FitBaseType::Uint8,
+            Self::MessageIndex => FitBaseType::Uint16,
             Self::Sport => FitBaseType::Enum,
             Self::NumValidSteps => FitBaseType::Uint16,
             Self::WorkoutName => FitBaseType::String,
@@ -278,7 +284,7 @@ pub enum FitWorkoutStepFieldDefinition {
 impl FitFieldDefinition for FitWorkoutStepFieldDefinition {
     fn base_type(&self) -> FitBaseType {
         match self {
-            Self::MessageIndex => FitBaseType::Uint8,
+            Self::MessageIndex => FitBaseType::Uint16,
             Self::DurationType => FitBaseType::Enum,
             Self::DurationValue => FitBaseType::Uint32,
             Self::DurationTime => FitBaseType::Uint32,

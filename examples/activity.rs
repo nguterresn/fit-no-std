@@ -3,8 +3,7 @@
 use std::{fs::File, io::Write};
 
 use fit_no_std::{
-    FitActivityFieldDefinition, FitEventType, FitEventTypeType, FitFile, FitFileIdFieldDefinition,
-    FitFileType, FitGlobalMessageType, FitLapFieldDefinition, FitProtocolVersion,
+    FitActivityFieldDefinition, FitFile, FitFileType, FitGlobalMessageType, FitLapFieldDefinition,
     FitSessionFieldDefinition,
 };
 
@@ -51,6 +50,7 @@ fn main() {
         FitGlobalMessageType::Session,
         &[
             FitSessionFieldDefinition::Timestamp,
+            FitSessionFieldDefinition::MessageIndex,
             FitSessionFieldDefinition::StartTime,
             FitSessionFieldDefinition::TotalElapsedTime,
             FitSessionFieldDefinition::TotalTimerTime,
@@ -59,12 +59,14 @@ fn main() {
     )
     .unwrap();
 
+    let mut data: [u8; 22] = [0; 22];
     // Wrap up Session
     data[0..4].copy_from_slice(&(ts + 600).to_le_bytes()); // TimeStamp
-    data[4..8].copy_from_slice(&(ts).to_le_bytes()); // Start time
-    data[8..12].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Elapsed Time
-    data[12..16].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Timer Time
-    data[16..20].copy_from_slice(&(2100u32 * 100).to_le_bytes()); // Distance
+    data[4..6].copy_from_slice(&(0u16).to_le_bytes()); // Index
+    data[6..10].copy_from_slice(&(ts).to_le_bytes()); // Start time
+    data[10..14].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Elapsed Time
+    data[14..18].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Timer Time
+    data[18..22].copy_from_slice(&(2100u32 * 100).to_le_bytes()); // Distance
     fit.push(&data).unwrap();
 
     // Define an Activity [required]
@@ -84,7 +86,7 @@ fn main() {
     data[0..4].copy_from_slice(&(ts + 600).to_le_bytes()); // TimeStamp
     data[4..8].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Timer Time
     data[8..10].copy_from_slice(&(1u16).to_le_bytes()); // Num Sessions
-    data[10..14].copy_from_slice(&(ts + 600).to_le_bytes()); // Num Sessions
+    data[10..14].copy_from_slice(&(ts + 600).to_le_bytes()); // Local timestamp
     fit.push(&data).unwrap();
 
     let buf = fit.done().unwrap();

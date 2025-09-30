@@ -62,7 +62,9 @@ impl<const N: usize> FitFile<N> {
             .map_err(|_e| 0)?;
 
         // Data size (4 bytes)
-        // Added from `done()`
+        self.stream
+            .extend_from_slice(&(0u32).to_le_bytes())
+            .map_err(|_e| 0)?;
 
         // Data Type (.FIT)
         self.stream.extend_from_slice(b".FIT").map_err(|_e| 0)?;
@@ -161,11 +163,9 @@ impl<const N: usize> FitFile<N> {
     }
 
     pub fn done(&mut self) -> Result<&[u8], FitError> {
-        let size = self.size() - 10;
+        let size = self.size() - 14;
         for n in 0..4 {
-            self.stream
-                .insert(4, ((size >> (3 - n) * 8) & 0xff) as u8)
-                .map_err(|e| FitError::Failed(e))?;
+            self.stream[n + 4] = ((size >> (n * 8)) & 0xff) as u8;
         }
 
         let mut crc = 0u16;
