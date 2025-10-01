@@ -226,6 +226,39 @@ impl FitFieldDefinition for FitEventFieldDefinition {
     }
 }
 
+pub enum FitRecordFieldDefinition {
+    PositionLat,
+    PositionLong,
+    Altitude,
+    HeartRate,
+    Speed,
+    Timestamp,
+}
+
+impl FitFieldDefinition for FitRecordFieldDefinition {
+    fn base_type(&self) -> FitBaseType {
+        match self {
+            Self::PositionLat => FitBaseType::Sint32,
+            Self::PositionLong => FitBaseType::Sint32,
+            Self::Altitude => FitBaseType::Uint16,
+            Self::HeartRate => FitBaseType::Uint8,
+            Self::Speed => FitBaseType::Uint16,
+            Self::Timestamp => FitBaseType::Uint32,
+        }
+    }
+
+    fn field_number(&self) -> u8 {
+        match self {
+            Self::PositionLat => 0,
+            Self::PositionLong => 1,
+            Self::Altitude => 2,
+            Self::HeartRate => 3,
+            Self::Speed => 6,
+            Self::Timestamp => 253,
+        }
+    }
+}
+
 ///////////////////////////
 // WORKOUT FILE SETTINGS //
 ///////////////////////////

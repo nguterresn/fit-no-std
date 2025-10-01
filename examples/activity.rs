@@ -4,7 +4,7 @@ use std::{fs::File, io::Write};
 
 use fit_no_std::{
     FitActivityFieldDefinition, FitFile, FitFileType, FitGlobalMessageType, FitLapFieldDefinition,
-    FitSessionFieldDefinition,
+    FitRecordFieldDefinition, FitSessionFieldDefinition,
 };
 
 // > The required message types for an Activity file are File Id, Activity,
@@ -12,10 +12,34 @@ use fit_no_std::{
 // > required, but it is considered a best practice to include them.
 
 fn main() {
-    let ts: u32 = 1759162622;
+    let ts: u32 = 938622559;
     println!("Let's try to save a .fit file! Timestamp: {}", ts);
 
     let mut fit = FitFile::<1024>::new(FitFileType::Activity, ts as u32).unwrap();
+    // Define Records [required]
+    fit.define(
+        FitGlobalMessageType::Record,
+        &[
+            FitRecordFieldDefinition::Timestamp,
+            FitRecordFieldDefinition::PositionLat,
+            FitRecordFieldDefinition::PositionLong,
+            FitRecordFieldDefinition::HeartRate,
+        ],
+    )
+    .unwrap();
+    let mut data: [u8; 13] = [0; 13];
+    data[0..4].copy_from_slice(&(ts).to_le_bytes()); // TimeStamp
+    data[4..8].copy_from_slice(&(147u32).to_le_bytes()); // Elapsed Time
+    data[8..12].copy_from_slice(&(1347u32).to_le_bytes()); // Timer Time
+    data[12] = 110; // BPM
+    fit.push(&data).unwrap();
+
+    data[0..4].copy_from_slice(&(ts + 1).to_le_bytes()); // TimeStamp
+    data[4..8].copy_from_slice(&(148u32).to_le_bytes()); // Elapsed Time
+    data[8..12].copy_from_slice(&(1348u32).to_le_bytes()); // Timer Time
+    data[12] = 115; // BPM
+    fit.push(&data).unwrap();
+
     // Define Lap [required]
     fit.define(
         FitGlobalMessageType::Lap,
@@ -29,20 +53,13 @@ fn main() {
     )
     .unwrap();
 
-    // 1ST LAP (start at +1, takes 200s, 150s of running)
+    // 1ST LAP (start at +1, takes 300s)
     let mut data: [u8; 20] = [0; 20];
-    data[0..4].copy_from_slice(&(ts).to_le_bytes()); // TimeStamp
+    data[0..4].copy_from_slice(&(ts + 1).to_le_bytes()); // TimeStamp
     data[4..8].copy_from_slice(&(ts).to_le_bytes()); // Start time
-    data[8..12].copy_from_slice(&(300u32 * 1000).to_le_bytes()); // Elapsed Time
-    data[12..16].copy_from_slice(&(300u32 * 1000).to_le_bytes()); // Timer Time
-    data[16..20].copy_from_slice(&(1000u32 * 100).to_le_bytes()); // Distance
-    fit.push(&data).unwrap();
-    // 2ND LAP
-    data[0..4].copy_from_slice(&(ts + 300).to_le_bytes()); // TimeStamp
-    data[4..8].copy_from_slice(&(ts + 300).to_le_bytes()); // Start time
-    data[8..12].copy_from_slice(&(300u32 * 1000).to_le_bytes()); // Elapsed Time
-    data[12..16].copy_from_slice(&(300u32 * 1000).to_le_bytes()); // Timer Time
-    data[16..20].copy_from_slice(&(1100u32 * 100).to_le_bytes()); // Distance
+    data[8..12].copy_from_slice(&(1u32 * 1000).to_le_bytes()); // Elapsed Time
+    data[12..16].copy_from_slice(&(1u32 * 1000).to_le_bytes()); // Timer Time
+    data[16..20].copy_from_slice(&(1u32 * 100).to_le_bytes()); // Distance
     fit.push(&data).unwrap();
 
     // Define an Session [required]
@@ -61,12 +78,12 @@ fn main() {
 
     let mut data: [u8; 22] = [0; 22];
     // Wrap up Session
-    data[0..4].copy_from_slice(&(ts + 600).to_le_bytes()); // TimeStamp
+    data[0..4].copy_from_slice(&(ts + 1).to_le_bytes()); // TimeStamp
     data[4..6].copy_from_slice(&(0u16).to_le_bytes()); // Index
     data[6..10].copy_from_slice(&(ts).to_le_bytes()); // Start time
-    data[10..14].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Elapsed Time
-    data[14..18].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Timer Time
-    data[18..22].copy_from_slice(&(2100u32 * 100).to_le_bytes()); // Distance
+    data[10..14].copy_from_slice(&(1u32 * 1000).to_le_bytes()); // Elapsed Time
+    data[14..18].copy_from_slice(&(1u32 * 1000).to_le_bytes()); // Timer Time
+    data[18..22].copy_from_slice(&(1u32 * 100).to_le_bytes()); // Distance
     fit.push(&data).unwrap();
 
     // Define an Activity [required]
@@ -74,19 +91,19 @@ fn main() {
         FitGlobalMessageType::Activity,
         &[
             FitActivityFieldDefinition::Timestamp,
-            FitActivityFieldDefinition::TotalTimerTime,
             FitActivityFieldDefinition::NumSessions,
             FitActivityFieldDefinition::LocalTimestamp,
+            FitActivityFieldDefinition::TotalTimerTime,
         ],
     )
     .unwrap();
 
     // Wrap up Activity
     let mut data: [u8; 14] = [0; 14];
-    data[0..4].copy_from_slice(&(ts + 600).to_le_bytes()); // TimeStamp
-    data[4..8].copy_from_slice(&(600u32 * 1000).to_le_bytes()); // Timer Time
-    data[8..10].copy_from_slice(&(1u16).to_le_bytes()); // Num Sessions
-    data[10..14].copy_from_slice(&(ts + 600).to_le_bytes()); // Local timestamp
+    data[0..4].copy_from_slice(&(ts + 1).to_le_bytes()); // TimeStamp
+    data[4..6].copy_from_slice(&(1u16).to_le_bytes()); // Num Sessions
+    data[6..10].copy_from_slice(&(ts + 1).to_le_bytes()); // Local timestamp
+    data[10..14].copy_from_slice(&(1u32 * 1000).to_le_bytes()); // Timer Time
     fit.push(&data).unwrap();
 
     let buf = fit.done().unwrap();
