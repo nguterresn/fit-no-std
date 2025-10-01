@@ -1,9 +1,8 @@
 use std::{fs::File, io::Write};
 
 use fit_no_std::{
-    FitFile, FitFileType, FitGlobalMessageType, FitProtocolVersion, FitSportType,
-    FitWorkoutFieldDefinition, FitWorkoutStepDuration, FitWorkoutStepFieldDefinition,
-    FitWorkoutStepTarget,
+    FitFile, FitFileType, FitGlobalMessageType, FitSportType, FitWorkoutFieldDefinition,
+    FitWorkoutStepDuration, FitWorkoutStepFieldDefinition, FitWorkoutStepTarget,
 };
 
 fn main() {

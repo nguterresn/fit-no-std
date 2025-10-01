@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::{fs::File, io::Write};
 
 use fit_no_std::{

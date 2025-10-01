@@ -10,9 +10,7 @@ pub use types::*;
 
 #[cfg(test)]
 mod tests {
-    use crate::{
-        FitFile, FitFileType, FitGlobalMessageType, FitLapFieldDefinition, FitProtocolVersion,
-    };
+    use crate::{FitFile, FitFileType, FitGlobalMessageType, FitLapFieldDefinition};
 
     #[test]
     fn create_min_file() {
